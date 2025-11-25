@@ -112,6 +112,23 @@ body.dark-mode .ranjit-editor-container {
   z-index: 9999;
   border-radius: 0;
   transform: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.ranjit-editor-container.fullscreen-mode .ranjit-editor-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  max-height: none;
+}
+
+.ranjit-editor-container.fullscreen-mode .ranjit-editor-toolbar {
+  flex-shrink: 0;
+}
+
+.ranjit-editor-container.fullscreen-mode .ranjit-editor-footer {
+  flex-shrink: 0;
 }
 
 .ranjit-editor-toolbar {
@@ -288,6 +305,7 @@ body.dark-mode .tool-color-picker i {
 }
 .ranjit-editor-content {
   min-height: 400px;
+  max-height: 500px;
   padding: 25px;
   outline: none;
   line-height: 1.8;
@@ -3974,6 +3992,39 @@ body.dark-mode .offcanvas-header {
   flex: 1;
   padding: 25px;
   overflow-y: auto;
+  max-height: calc(100vh - 200px);
+}
+
+.tab-content {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+  padding-right: 5px;
+}
+
+.tab-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #667eea, #764ba2);
+  border-radius: 3px;
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #5a67d8, #6b46c1);
+}
+
+body.dark-mode .tab-content::-webkit-scrollbar-track {
+  background: #4a5568;
+}
+
+body.dark-mode .tab-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #3498db, #9b59b6);
 }
 
 .offcanvas-footer {

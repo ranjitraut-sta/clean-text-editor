@@ -93,10 +93,21 @@
             </div>
           </div>
           <div class="tool-group">
-            <button type="button" class="tool-button" data-command="justifyLeft" title="Align Left"><i class="fas fa-align-left"></i></button>
-            <button type="button" class="tool-button" data-command="justifyCenter" title="Align Center"><i class="fas fa-align-center"></i></button>
-            <button type="button" class="tool-button" data-command="justifyRight" title="Align Right"><i class="fas fa-align-right"></i></button>
-            <button type="button" class="tool-button" data-command="justifyFull" title="Justify"><i class="fas fa-align-justify"></i></button>
+            <div class="tool-dropdown" title="Text Alignment">
+              <button type="button" class="tool-button dropdown-toggle" data-command="toggleAlignment">
+                <i class="fas fa-align-left"></i>
+                <i class="fas fa-chevron-down dropdown-arrow"></i>
+              </button>
+              <div class="dropdown-menu" id="alignmentMenu">
+                <div class="dropdown-section">
+                  <div class="dropdown-header">📐 Text Alignment</div>
+                  <button class="dropdown-item" data-command="justifyLeft"><i class="fas fa-align-left"></i> Align Left</button>
+                  <button class="dropdown-item" data-command="justifyCenter"><i class="fas fa-align-center"></i> Align Center</button>
+                  <button class="dropdown-item" data-command="justifyRight"><i class="fas fa-align-right"></i> Align Right</button>
+                  <button class="dropdown-item" data-command="justifyFull"><i class="fas fa-align-justify"></i> Justify</button>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="tool-group">
             <button type="button" class="tool-button" data-command="insertUnorderedList" title="Bullet List"><i class="fas fa-list-ul"></i></button>
@@ -325,6 +336,13 @@
       instance.saveState();
       instance.updateCounts();
       
+      // Initialize color picker indicators
+      $editor.find('.color-input').each(function() {
+        const $colorPicker = $(this).closest('.tool-color-picker');
+        const value = $(this).val();
+        $colorPicker.css('--current-color', value);
+      });
+      
       // Load and apply saved settings
       setTimeout(() => {
         const settings = loadEditorSettings();
@@ -413,6 +431,11 @@
         activeEditorInstance = instance;
         const command = $(this).data('command');
         const value = $(this).val();
+        const $colorPicker = $(this).closest('.tool-color-picker');
+        
+        // Update visual indicator
+        $colorPicker.css('--current-color', value);
+        
         $contentArea.focus();
         
         // Apply color immediately
@@ -487,7 +510,10 @@
               const newUrl = prompt('Enter new image URL:', currentUrl);
               if (newUrl && newUrl !== currentUrl) {
                 $selectedImage.attr('src', newUrl);
-                showNotification('Image URL updated!');
+                const settings = loadEditorSettings();
+          if (settings.showImageSuccess) {
+            showNotification('Image URL updated!');
+          }
               }
             } else {
               alert('Please select an image first by clicking on it.');
@@ -552,6 +578,13 @@
           }
           
           case "toggleTextEffects": {
+            const $menu = $(this).closest('.tool-dropdown').find('.dropdown-menu');
+            $('.dropdown-menu').not($menu).hide();
+            $menu.toggle();
+            break;
+          }
+          
+          case "toggleAlignment": {
             const $menu = $(this).closest('.tool-dropdown').find('.dropdown-menu');
             $('.dropdown-menu').not($menu).hide();
             $menu.toggle();
@@ -697,6 +730,7 @@
   function applyEditorSettings() {
     const settings = {
       textEffects: $('#enableTextEffects').is(':checked'),
+      imageInsert: $('#enableImageInsert').is(':checked'),
       advancedTable: $('#enableAdvancedTable').is(':checked'),
       videoInsert: $('#enableVideoInsert').is(':checked'),
       importExport: $('#enableImportExport').is(':checked'),
@@ -705,7 +739,10 @@
       emoji: $('#enableEmoji').is(':checked'),
       search: $('#enableSearch').is(':checked'),
       fullscreen: $('#enableFullscreen').is(':checked'),
-      selectAll: $('#enableSelectAll').is(':checked')
+      selectAll: $('#enableSelectAll').is(':checked'),
+      dateTime: $('#enableDateTime').is(':checked'),
+      horizontalRule: $('#enableHorizontalRule').is(':checked'),
+      showImageSuccess: $('#enableImageSuccess').is(':checked')
     };
     
     // Save to localStorage
@@ -713,6 +750,7 @@
     
     // Apply settings to UI
     $('.tool-dropdown[title="Text Effects"]').toggle(settings.textEffects);
+    $('.tool-dropdown[title="Insert Image"]').toggle(settings.imageInsert);
     $('.tool-button[data-command="insertTable"]').toggle(settings.advancedTable);
     $('.tool-button[data-command="insertVideo"]').toggle(settings.videoInsert);
     $('.tool-dropdown[title="Import/Export"]').toggle(settings.importExport);
@@ -720,6 +758,8 @@
     $('.tool-button[data-command="findReplace"]').toggle(settings.search);
     $('.tool-button[data-command="toggleFullscreen"]').toggle(settings.fullscreen);
     $('.tool-button[data-command="selectAll"]').toggle(settings.selectAll);
+    $('.tool-button[data-command="insertDateTime"]').toggle(settings.dateTime);
+    $('.tool-button[data-command="insertHorizontalRule"]').toggle(settings.horizontalRule);
     
     // Update editor settings
     if (activeEditorInstance) {
@@ -741,34 +781,44 @@
       const settings = JSON.parse(savedSettings);
       
       // Apply to UI immediately
-      $('.tool-dropdown[title="Text Effects"]').toggle(settings.textEffects !== false);
-      $('.tool-button[data-command="insertTable"]').toggle(settings.advancedTable !== false);
-      $('.tool-button[data-command="insertVideo"]').toggle(settings.videoInsert !== false);
-      $('.tool-dropdown[title="Import/Export"]').toggle(settings.importExport !== false);
-      $('.tool-button[data-command="showEmoji"]').toggle(settings.emoji !== false);
-      $('.tool-button[data-command="findReplace"]').toggle(settings.search !== false);
-      $('.tool-button[data-command="toggleFullscreen"]').toggle(settings.fullscreen !== false);
-      $('.tool-button[data-command="selectAll"]').toggle(settings.selectAll !== false);
-      $('.editor-status').toggle(settings.wordCount !== false);
+      $('.tool-dropdown[title="Text Effects"]').toggle(settings.textEffects === true);
+      $('.tool-dropdown[title="Insert Image"]').toggle(settings.imageInsert === true);
+      $('.tool-button[data-command="insertTable"]').toggle(settings.advancedTable === true);
+      $('.tool-button[data-command="insertVideo"]').toggle(settings.videoInsert === true);
+      $('.tool-dropdown[title="Import/Export"]').toggle(settings.importExport === true);
+      $('.tool-button[data-command="showEmoji"]').toggle(settings.emoji === true);
+      $('.tool-button[data-command="findReplace"]').toggle(settings.search === true);
+      $('.tool-button[data-command="toggleFullscreen"]').toggle(settings.fullscreen === true);
+      $('.tool-button[data-command="selectAll"]').toggle(settings.selectAll === true);
+      $('.tool-button[data-command="insertDateTime"]').toggle(settings.dateTime === true);
+      $('.tool-button[data-command="insertHorizontalRule"]').toggle(settings.horizontalRule === true);
+      $('.editor-status').toggle(settings.wordCount === true);
       
       return settings;
     }
     
-    // Default settings
+    // Default settings - all disabled
     return {
-      textEffects: true,
-      advancedTable: true,
-      videoInsert: true,
-      importExport: true,
-      autosave: true,
-      wordCount: true,
-      emoji: true
+      textEffects: false,
+      imageInsert: false,
+      advancedTable: false,
+      videoInsert: false,
+      importExport: false,
+      autosave: false,
+      wordCount: false,
+      emoji: false,
+      search: false,
+      fullscreen: false,
+      selectAll: false,
+      dateTime: false,
+      horizontalRule: false,
+      showImageSuccess: false
     };
   }
   
   // Reset editor settings
   function resetEditorSettings() {
-    $('#enableTextEffects, #enableAdvancedTable, #enableVideoInsert, #enableImportExport, #enableAutosave, #enableWordCount, #enableEmoji').prop('checked', true);
+    $('#enableTextEffects, #enableImageInsert, #enableAdvancedTable, #enableVideoInsert, #enableImportExport, #enableAutosave, #enableWordCount, #enableEmoji, #enableSearch, #enableFullscreen, #enableSelectAll, #enableDateTime, #enableHorizontalRule, #enableImageSuccess').prop('checked', false);
     applyEditorSettings();
     showNotification('Settings reset to default!');
   }
@@ -788,6 +838,7 @@
           <div class="settings-tabs">
             <button class="tab-btn active" data-tab="toolbar">🛠️ Toolbar Features</button>
             <button class="tab-btn" data-tab="preferences">🎨 Editor Preferences</button>
+            <button class="tab-btn" data-tab="notifications">🔔 Notifications</button>
           </div>
           
           <div class="offcanvas-body">
@@ -799,6 +850,14 @@
                   <div class="toggle-info">
                     <strong>📝 Text Effects</strong>
                     <small>Sub/Superscript options</small>
+                  </div>
+                </label>
+                <label class="setting-toggle">
+                  <input type="checkbox" id="enableImageInsert" ${savedSettings.imageInsert ? 'checked' : ''}>
+                  <span class="toggle-switch"></span>
+                  <div class="toggle-info">
+                    <strong>🖼️ Image Insert</strong>
+                    <small>Upload and insert images</small>
                   </div>
                 </label>
                 <label class="setting-toggle">
@@ -849,6 +908,22 @@
                     <small>Quick text selection</small>
                   </div>
                 </label>
+                <label class="setting-toggle">
+                  <input type="checkbox" id="enableDateTime" ${savedSettings.dateTime ? 'checked' : ''}>
+                  <span class="toggle-switch"></span>
+                  <div class="toggle-info">
+                    <strong>🕐 Date/Time Insert</strong>
+                    <small>Insert current date and time</small>
+                  </div>
+                </label>
+                <label class="setting-toggle">
+                  <input type="checkbox" id="enableHorizontalRule" ${savedSettings.horizontalRule ? 'checked' : ''}>
+                  <span class="toggle-switch"></span>
+                  <div class="toggle-info">
+                    <strong>➖ Horizontal Line</strong>
+                    <small>Insert horizontal divider line</small>
+                  </div>
+                </label>
               </div>
             </div>
             
@@ -876,6 +951,19 @@
                   <div class="toggle-info">
                     <strong>😀 Emoji Picker</strong>
                     <small>Insert emojis easily</small>
+                  </div>
+                </label>
+              </div>
+            </div>
+            
+            <div class="tab-content" id="notifications-tab">
+              <div class="settings-list">
+                <label class="setting-toggle">
+                  <input type="checkbox" id="enableImageSuccess" ${savedSettings.showImageSuccess ? 'checked' : ''}>
+                  <span class="toggle-switch"></span>
+                  <div class="toggle-info">
+                    <strong>🖼️ Image Upload Success</strong>
+                    <small>Show "Image inserted successfully" message</small>
                   </div>
                 </label>
               </div>
@@ -2794,7 +2882,9 @@
         } else if (command.startsWith('export')) {
           handleExport(activeEditorInstance, command);
         } else {
-          handleCommand(command, null, null);
+          // Focus editor first, then execute command
+          activeEditorInstance.$contentArea.focus();
+          activeEditorInstance.exec(command);
         }
       }
     });
@@ -4081,10 +4171,15 @@
     
     fileInput.onchange = function(e) {
       const file = e.target.files[0];
-      if (!file) return;
+      if (!file) {
+        // Clean up if no file selected
+        document.body.removeChild(fileInput);
+        return;
+      }
       
       if (file.size > 2 * 1024 * 1024) {
-        alert('Image size should be less than 2MB');
+        showNotification('Image size should be less than 2MB', 'error');
+        document.body.removeChild(fileInput);
         return;
       }
       
@@ -4126,7 +4221,13 @@
           };
           
           insertImage(editorInstance, imageData);
-          showNotification('Image inserted successfully!');
+          const settings = loadEditorSettings();
+          if (settings.showImageSuccess) {
+            showNotification('Image inserted successfully!');
+          }
+          
+          // Clean up
+          document.body.removeChild(fileInput);
         };
         img.src = event.target.result;
       };
@@ -4135,7 +4236,6 @@
     
     document.body.appendChild(fileInput);
     fileInput.click();
-    document.body.removeChild(fileInput);
   }
   
   // Replace image functionality
@@ -4180,7 +4280,10 @@
           
           const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
           $img.attr('src', compressedDataUrl);
-          showNotification('Image replaced successfully!');
+          const settings = loadEditorSettings();
+          if (settings.showImageSuccess) {
+            showNotification('Image replaced successfully!');
+          }
         };
         img.src = event.target.result;
       };
