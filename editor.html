@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ranjit Editor - jQuery Plugin</title>
+
+    <!-- 1. DEPENDENCIES: Font Awesome & jQuery -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- JSDelivr CDN (Fast & Cached) -->
+    <link rel="stylesheet" href="assets/main.css">
+    <!-- Local fallback -->
+    <!-- <link rel="stylesheet" href="assets/main.css" /> -->
+  </head>
+  <body class="ranjit-demo-page">
+    <div class="page-container">
+      <div class="header-controls">
+        <h1>Ranjit Editor Plugin Demo</h1>
+        <button id="darkModeToggle" class="dark-mode-btn">
+          <i class="fas fa-moon"></i> Dark Mode
+        </button>
+      </div>
+
+      <form
+        id="myForm"
+        onsubmit="alert('Form submitted! Check console for data.'); console.log($(this).serialize()); return false;"
+      >
+        <div style="margin-bottom: 2rem">
+          <textarea name="content" id="editor1" rows="10"></textarea>
+        </div>
+
+      </form>
+    </div>
+    
+    <!-- JSDelivr CDN (Fast & Cached) -->
+    <script src="assets/main.js"></script>
+    <!-- Local fallback -->
+    <!-- <script src="assets/main.js"></script> -->
+    <script>
+      $(document).ready(function () {
+        // Initialize editor with advanced options
+        $("#editor1").ranjitEditor({
+          autosave: true,
+          wordCount: true,
+          darkMode: false,
+          fullscreen: true,
+          emoji: true
+        });
+      });
+    </script>
+  </body>
+</html>
