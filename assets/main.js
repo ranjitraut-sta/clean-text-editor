@@ -29,12 +29,12 @@
           <div class="tool-group">
             <select class="tool-select" data-command="formatBlock">
               <option value="P">Paragraph</option>
-              <option value="H1">Heading 1</option>
-              <option value="H2">Heading 2</option>
-              <option value="H3">Heading 3</option>
-              <option value="H4">Heading 4</option>
-              <option value="H5">Heading 5</option>
-              <option value="H6">Heading 6</option>
+              <option value="H1">H1</option>
+              <option value="H2">H2</option>
+              <option value="H3">H3</option>
+              <option value="H4">H4</option>
+              <option value="H5">H5</option>
+              <option value="H6">H6</option>
               <option value="BLOCKQUOTE">Quote</option>
               <option value="PRE">Code Block</option>
             </select>
@@ -139,6 +139,7 @@
             </div>
             <button type="button" class="tool-button" data-command="insertVideo" title="Insert Video"><i class="fas fa-video"></i></button>
             <button type="button" class="tool-button" data-command="insertTable" title="Insert Table"><i class="fas fa-table"></i></button>
+            <button type="button" class="tool-button" data-command="insertGallery" title="Insert Gallery"><i class="fas fa-images"></i></button>
           </div>
           <div class="tool-group">
             <button type="button" class="tool-button" data-command="insertHorizontalRule" title="Horizontal Line"><i class="fas fa-minus"></i></button>
@@ -278,8 +279,20 @@
           if (settings.autosave) {
             const cleanContent = getCleanHTML(instance);
             $originalTextarea.val(cleanContent);
-            localStorage.setItem(`ranjit-editor-${editorId}`, cleanContent);
-            $autosaveStatus.text('Saved').addClass('saved');
+            
+            // Prevent localStorage quota exceeded error
+            try {
+              // Limit content size to prevent quota issues
+              const contentToStore = cleanContent.length > 50000 ? 
+                cleanContent.substring(0, 50000) + '...[content truncated]' : 
+                cleanContent;
+              localStorage.setItem(`ranjit-editor-${editorId}`, contentToStore);
+              $autosaveStatus.text('Saved').addClass('saved');
+            } catch (e) {
+              console.warn('Autosave failed:', e.message);
+              $autosaveStatus.text('Save Failed').removeClass('saved');
+            }
+            
             setTimeout(() => {
               $autosaveStatus.text('Ready').removeClass('saved');
             }, 2000);
@@ -329,8 +342,13 @@
       // Setup
       $originalTextarea.hide().after($editor).addClass('ranjit-editor-initialized');
       
-      // Load content
-      const savedContent = localStorage.getItem(`ranjit-editor-${editorId}`);
+      // Load content with error handling
+      let savedContent = null;
+      try {
+        savedContent = localStorage.getItem(`ranjit-editor-${editorId}`);
+      } catch (e) {
+        console.warn('Failed to load saved content:', e.message);
+      }
       const initialContent = savedContent || $originalTextarea.val();
       $contentArea.html(initialContent);
       instance.saveState();
@@ -370,8 +388,13 @@
             handleSingleDroppedImage(files[0]);
           }, 100);
         } else if (files.length > 1) {
-          // Multiple images - create gallery directly
-          handleMultipleDroppedImages(files, instance);
+          // Multiple images - show gallery builder
+          activeEditorInstance = instance;
+          showImageBuilder(instance);
+          setTimeout(() => {
+            $('.upload-mode-btn[data-mode="multiple"]').click();
+            handleMultipleFiles(files);
+          }, 100);
         }
       });
       
@@ -532,6 +555,15 @@
             break;
           }
           
+          case "insertGallery": {
+            showImageBuilder(instance);
+            // Auto-switch to multiple mode
+            setTimeout(() => {
+              $('.upload-mode-btn[data-mode="multiple"]').click();
+            }, 100);
+            break;
+          }
+          
           case "insertDateTime": {
             const now = new Date();
             const dateTime = now.toLocaleString();
@@ -624,6 +656,14 @@
             break;
           }
           
+          case "getStyledHTML": {
+            const styledHTML = instance.getStyledHTML();
+            navigator.clipboard.writeText(styledHTML).then(() => {
+              showNotification('Styled HTML copied to clipboard!');
+            });
+            break;
+          }
+          
           case "findReplace": {
             showFindReplace(instance);
             break;
@@ -638,7 +678,7 @@
             $("#ranjitHelpModal").html(`
               <div class="ranjit-modal-content">
                 <span class="ranjit-modal-close">&times;</span>
-                <h3>Ranjit Editor - Advanced Features</h3>
+                <h3>Advanced Features</h3>
                 <div class="help-content">
                   <h4>Keyboard Shortcuts:</h4>
                   <ul>
@@ -659,6 +699,7 @@
                     <li>Emoji picker</li>
                     <li>Find & replace functionality</li>
                     <li>Advanced formatting options</li>
+                    <li>When you right-click on the table, its controls will appear.</li>
                   </ul>
                 </div>
               </div>
@@ -731,6 +772,7 @@
     const settings = {
       textEffects: $('#enableTextEffects').is(':checked'),
       imageInsert: $('#enableImageInsert').is(':checked'),
+      galleryInsert: $('#enableGalleryInsert').is(':checked'),
       advancedTable: $('#enableAdvancedTable').is(':checked'),
       videoInsert: $('#enableVideoInsert').is(':checked'),
       importExport: $('#enableImportExport').is(':checked'),
@@ -751,6 +793,7 @@
     // Apply settings to UI
     $('.tool-dropdown[title="Text Effects"]').toggle(settings.textEffects);
     $('.tool-dropdown[title="Insert Image"]').toggle(settings.imageInsert);
+    $('.tool-button[data-command="insertGallery"]').toggle(settings.galleryInsert);
     $('.tool-button[data-command="insertTable"]').toggle(settings.advancedTable);
     $('.tool-button[data-command="insertVideo"]').toggle(settings.videoInsert);
     $('.tool-dropdown[title="Import/Export"]').toggle(settings.importExport);
@@ -783,6 +826,7 @@
       // Apply to UI immediately
       $('.tool-dropdown[title="Text Effects"]').toggle(settings.textEffects === true);
       $('.tool-dropdown[title="Insert Image"]').toggle(settings.imageInsert === true);
+      $('.tool-button[data-command="insertGallery"]').toggle(settings.galleryInsert === true);
       $('.tool-button[data-command="insertTable"]').toggle(settings.advancedTable === true);
       $('.tool-button[data-command="insertVideo"]').toggle(settings.videoInsert === true);
       $('.tool-dropdown[title="Import/Export"]').toggle(settings.importExport === true);
@@ -797,11 +841,12 @@
       return settings;
     }
     
-    // Default settings - all disabled
+    // Default settings - table and image insert enabled by default
     return {
       textEffects: false,
-      imageInsert: false,
-      advancedTable: false,
+      imageInsert: true,
+      galleryInsert: false,
+      advancedTable: true,
       videoInsert: false,
       importExport: false,
       autosave: false,
@@ -818,7 +863,7 @@
   
   // Reset editor settings
   function resetEditorSettings() {
-    $('#enableTextEffects, #enableImageInsert, #enableAdvancedTable, #enableVideoInsert, #enableImportExport, #enableAutosave, #enableWordCount, #enableEmoji, #enableSearch, #enableFullscreen, #enableSelectAll, #enableDateTime, #enableHorizontalRule, #enableImageSuccess').prop('checked', false);
+    $('#enableTextEffects, #enableImageInsert, #enableGalleryInsert, #enableAdvancedTable, #enableVideoInsert, #enableImportExport, #enableAutosave, #enableWordCount, #enableEmoji, #enableSearch, #enableFullscreen, #enableSelectAll, #enableDateTime, #enableHorizontalRule, #enableImageSuccess').prop('checked', false);
     applyEditorSettings();
     showNotification('Settings reset to default!');
   }
@@ -857,7 +902,15 @@
                   <span class="toggle-switch"></span>
                   <div class="toggle-info">
                     <strong>🖼️ Image Insert</strong>
-                    <small>Upload and insert images</small>
+                    <small>Upload and insert single images</small>
+                  </div>
+                </label>
+                <label class="setting-toggle">
+                  <input type="checkbox" id="enableGalleryInsert" ${savedSettings.galleryInsert ? 'checked' : ''}>
+                  <span class="toggle-switch"></span>
+                  <div class="toggle-info">
+                    <strong>🖼️ Gallery Insert</strong>
+                    <small>Upload and create image galleries</small>
                   </div>
                 </label>
                 <label class="setting-toggle">
@@ -1021,6 +1074,53 @@
     $temp.find('.image-toolbar, .video-overlay, .table-toolbar').remove();
     $temp.find('.image-resize-handles').remove();
     $temp.find('.image-figure, .video-figure, .table-figure').removeClass('selected editing');
+    
+    // Convert editor-specific elements to standard HTML
+    $temp.find('.image-figure').each(function() {
+      const $figure = $(this);
+      const $img = $figure.find('img');
+      const $caption = $figure.find('.image-caption');
+      
+      if ($img.length) {
+        let imgHtml = $img[0].outerHTML;
+        if ($caption.length && $caption.text().trim()) {
+          imgHtml = `<figure>${imgHtml}<figcaption>${$caption.text()}</figcaption></figure>`;
+        }
+        $figure.replaceWith(imgHtml);
+      }
+    });
+    
+    $temp.find('.video-figure').each(function() {
+      const $figure = $(this);
+      const $video = $figure.find('iframe, video');
+      const $caption = $figure.find('.video-caption');
+      
+      if ($video.length) {
+        let videoHtml = $video[0].outerHTML;
+        if ($caption.length && $caption.text().trim()) {
+          videoHtml = `<figure>${videoHtml}<figcaption>${$caption.text()}</figcaption></figure>`;
+        }
+        $figure.replaceWith(videoHtml);
+      }
+    });
+    
+    $temp.find('.table-figure').each(function() {
+      const $figure = $(this);
+      const $table = $figure.find('table');
+      
+      if ($table.length) {
+        $figure.replaceWith($table[0].outerHTML);
+      }
+    });
+    
+    // Remove editor-specific classes
+    $temp.find('*').each(function() {
+      const $el = $(this);
+      $el.removeClass('ranjit-table hover-table sortable-table editable-table resizable-table');
+      $el.removeClass('sortable-header sort-asc sort-desc');
+      $el.removeClass('editor-image resizable-image gallery-image');
+      $el.removeClass('video-embed');
+    });
     
     return $temp.html();
   }
@@ -1434,6 +1534,7 @@
     
     let currentImageData = null;
     let galleryImages = [];
+    window.currentUploadMode = 'single';
     let uploadMode = 'single';
     
     // Upload mode toggle
@@ -1441,6 +1542,7 @@
       $('.upload-mode-btn').removeClass('active');
       $(this).addClass('active');
       uploadMode = $(this).data('mode');
+      window.currentUploadMode = uploadMode;
       
       if (uploadMode === 'multiple') {
         $('#imageFileInput').attr('multiple', true);
@@ -1454,13 +1556,22 @@
     });
     
     // Upload area click - fix for proper file input triggering
-    $(document).on('click', '#imageUploadArea', function(e) {
+    $('#imageUploadArea').on('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
-      console.log('Upload area clicked'); // Debug log
+      console.log('Upload area clicked, mode:', uploadMode); // Debug log
       const fileInput = document.getElementById('imageFileInput');
       if (fileInput) {
+        // Set multiple attribute based on current mode
+        if (window.currentUploadMode === 'multiple') {
+          fileInput.setAttribute('multiple', true);
+        } else {
+          fileInput.removeAttribute('multiple');
+        }
+        console.log('Triggering file input click');
         fileInput.click();
+      } else {
+        console.log('File input not found');
       }
     });
     
@@ -2034,7 +2145,7 @@
     });
     
     // Template selection
-    $('#ranjitTableModal').off('click', '.template-btn').on('click', '.template-btn', function() {
+    $('.template-btn').on('click', function() {
       $('.template-btn').removeClass('active');
       $(this).addClass('active');
       selectedTemplate = $(this).data('template');
@@ -2057,7 +2168,7 @@
     });
     
     // Create table
-    $(document).off('click', '#ranjitTableModal #createTableBtn').on('click', '#ranjitTableModal #createTableBtn', function() {
+    $('#createTableBtn').on('click', function() {
       const rows = parseInt($('#customRows').val()) || 3;
       const cols = parseInt($('#customCols').val()) || 3;
       const options = getTableOptions();
@@ -2572,13 +2683,7 @@
           <h4>🎯 Current Table: ${currentSettings.rows} × ${currentSettings.cols}</h4>
         </div>
         
-        <div class="table-builder-section">
-          <h4>🎯 Quick Select (Hover to Preview)</h4>
-          <div class="table-grid-selector" id="tableGridSelector">
-            <div class="grid-preview" id="gridPreview"></div>
-            <div class="grid-info" id="gridInfo">Hover to select</div>
-          </div>
-        </div>
+
         
         <div class="table-builder-section">
           <h4>🎨 Table Styles</h4>
@@ -2614,23 +2719,31 @@
           <h4>⚙️ Table Configuration</h4>
           <div class="table-config-grid">
             <div class="config-group">
+              <label>📏 Table Size</label>
+              <div class="dimension-inputs">
+                <input type="number" id="updateRows" value="${currentSettings.rows}" min="1" max="20" placeholder="Rows">
+                <span>×</span>
+                <input type="number" id="updateCols" value="${currentSettings.cols}" min="1" max="15" placeholder="Cols">
+              </div>
+            </div>
+            <div class="config-group">
               <label>📐 Width</label>
-              <select id="tableWidth">
-                <option value="100">Full Width</option>
-                <option value="75">75%</option>
-                <option value="50">50%</option>
-                <option value="auto">Auto</option>
+              <select id="tableWidth" class="ranjit-select">
+                <option value="100">🔲 Full Width (100%)</option>
+                <option value="75">📏 Large (75%)</option>
+                <option value="50">📐 Medium (50%)</option>
+                <option value="auto">📦 Auto Fit</option>
               </select>
             </div>
             <div class="config-group">
               <label>🎨 Theme</label>
-              <select id="tableColorTheme">
-                <option value="blue">Blue Ocean</option>
-                <option value="green">Forest Green</option>
-                <option value="purple">Royal Purple</option>
-                <option value="red">Crimson Red</option>
-                <option value="orange">Sunset Orange</option>
-                <option value="dark">Dark Mode</option>
+              <select id="tableColorTheme" class="ranjit-select">
+                <option value="blue">🌊 Blue Ocean</option>
+                <option value="green">🌲 Forest Green</option>
+                <option value="purple">👑 Royal Purple</option>
+                <option value="red">🔥 Crimson Red</option>
+                <option value="orange">🌅 Sunset Orange</option>
+                <option value="dark">🌙 Dark Mode</option>
               </select>
             </div>
           </div>
@@ -2732,21 +2845,56 @@
       selectedTemplate = $(this).data('template');
     });
     
-    $('#ranjitTableModal').off('click', '#updateTableBtn').on('click', '#updateTableBtn', function() {
+    $('#updateTableBtn').on('click', function() {
+      const newRows = parseInt($('#updateRows').val()) || currentSettings.rows;
+      const newCols = parseInt($('#updateCols').val()) || currentSettings.cols;
       const options = {
         responsive: $('#tableResponsive').is(':checked'),
         hover: $('#tableHover').is(':checked'),
         sortable: $('#tableSortable').is(':checked'),
         editable: $('#tableEditable').is(':checked'),
-        resizable: $('#tableResizable').is(':checked')
+        resizable: $('#tableResizable').is(':checked'),
+        colorTheme: $('#tableColorTheme').val(),
+        width: $('#tableWidth').val()
       };
       
-      updateExistingTable($existingTable, selectedTemplate, options);
+      updateExistingTable($existingTable, selectedTemplate, options, newRows, newCols);
       $('#ranjitTableModal').hide();
     });
   }
   
-  function updateExistingTable($table, template, options) {
+  function updateExistingTable($table, template, options, newRows, newCols) {
+    const currentRows = $table.find('tr').length;
+    const currentCols = $table.find('tr:first td, tr:first th').length;
+    
+    // Update table dimensions if changed
+    if (newRows && newCols && (newRows !== currentRows || newCols !== currentCols)) {
+      // Add/remove rows
+      while ($table.find('tr').length < newRows) {
+        const $lastRow = $table.find('tr:last');
+        const $newRow = $lastRow.clone();
+        $newRow.find('td, th').text('');
+        $lastRow.after($newRow);
+      }
+      while ($table.find('tr').length > newRows) {
+        $table.find('tr:last').remove();
+      }
+      
+      // Add/remove columns
+      $table.find('tr').each(function() {
+        const $row = $(this);
+        const cellTag = $row.find('th').length ? 'th' : 'td';
+        
+        while ($row.find('td, th').length < newCols) {
+          $row.append(`<${cellTag}></${cellTag}>`);
+        }
+        while ($row.find('td, th').length > newCols) {
+          $row.find('td, th').last().remove();
+        }
+      });
+    }
+    
+    // Update table classes
     $table.removeClass('hover-table sortable-table editable-table resizable-table');
     let tableClasses = 'ranjit-table';
     if (options.responsive) tableClasses += ' responsive-table';
@@ -2755,6 +2903,29 @@
     if (options.editable) tableClasses += ' editable-table';
     if (options.resizable) tableClasses += ' resizable-table';
     $table.attr('class', tableClasses);
+    
+    // Update table styling
+    if (options.width) {
+      const width = options.width === 'auto' ? 'auto' : options.width + '%';
+      $table.css('width', width);
+    }
+    
+    // Apply color theme
+    if (options.colorTheme) {
+      const colorThemes = {
+        blue: { primary: '#667eea', secondary: '#764ba2' },
+        green: { primary: '#28a745', secondary: '#20c997' },
+        purple: { primary: '#6f42c1', secondary: '#e83e8c' },
+        red: { primary: '#dc3545', secondary: '#fd7e14' },
+        orange: { primary: '#fd7e14', secondary: '#ffc107' },
+        dark: { primary: '#2d3748', secondary: '#4a5568' }
+      };
+      const theme = colorThemes[options.colorTheme] || colorThemes.blue;
+      $table.find('th').css({
+        'background': `linear-gradient(135deg, ${theme.primary}, ${theme.secondary})`,
+        'color': 'white'
+      });
+    }
     
     const hasHeader = template === 'header' || template === 'modern' || options.sortable;
     if (hasHeader && !$table.find('thead').length) {
@@ -3398,6 +3569,8 @@
   }
   
   function exportToHtml(content, filename) {
+    // Use clean HTML that works anywhere
+    const cleanContent = getCleanHTML(activeEditorInstance);
     const htmlContent = `
       <!DOCTYPE html>
       <html lang="en">
@@ -3415,20 +3588,29 @@
             color: #333;
           }
           h1, h2, h3, h4, h5, h6 {
-            color: #2c3e50;
+            color: #667eea;
             margin-top: 30px;
             margin-bottom: 15px;
+            font-weight: 700;
           }
+          h1 { font-size: 2.5em; }
+          h2 { font-size: 2em; }
+          h3 { font-size: 1.5em; }
+          h4 { font-size: 1.25em; }
+          h5 { font-size: 1.1em; }
+          h6 { font-size: 1em; }
           p { margin-bottom: 15px; }
           table {
             border-collapse: collapse;
             width: 100%;
             margin: 20px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
           }
           th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
+            border: 1px solid #e1e8ed;
+            padding: 12px 15px;
             text-align: left;
           }
           th {
@@ -3436,11 +3618,15 @@
             color: white;
             font-weight: 600;
           }
+          tr:nth-child(even) {
+            background: #f8f9fa;
+          }
           img {
             max-width: 100%;
             height: auto;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin: 10px 0;
           }
           blockquote {
             border-left: 4px solid #667eea;
@@ -3449,6 +3635,14 @@
             background: #f8f9fa;
             border-radius: 0 8px 8px 0;
             font-style: italic;
+          }
+          pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
           }
           a {
             color: #667eea;
@@ -3473,7 +3667,7 @@
           <p>Exported on ${new Date().toLocaleString()}</p>
         </div>
         <div class="content">
-          ${content}
+          ${cleanContent}
         </div>
         <hr style="margin: 40px 0; border: none; border-top: 1px solid #eee;">
         <p style="text-align: center; color: #666; font-size: 14px;">
@@ -4163,23 +4357,28 @@
   
   // Direct image upload functionality
   function openDirectImageUpload(editorInstance) {
+    // Prevent multiple file dialogs
+    if (document.querySelector('.temp-file-input')) {
+      return;
+    }
+    
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = 'image/*,image/jpeg,image/png,image/gif';
     fileInput.multiple = false;
     fileInput.style.display = 'none';
+    fileInput.className = 'temp-file-input';
     
     fileInput.onchange = function(e) {
       const file = e.target.files[0];
+      document.body.removeChild(fileInput);
+      
       if (!file) {
-        // Clean up if no file selected
-        document.body.removeChild(fileInput);
         return;
       }
       
       if (file.size > 2 * 1024 * 1024) {
         showNotification('Image size should be less than 2MB', 'error');
-        document.body.removeChild(fileInput);
         return;
       }
       
@@ -4225,13 +4424,15 @@
           if (settings.showImageSuccess) {
             showNotification('Image inserted successfully!');
           }
-          
-          // Clean up
-          document.body.removeChild(fileInput);
         };
         img.src = event.target.result;
       };
       reader.readAsDataURL(file);
+    };
+    
+    // Clean up on cancel
+    fileInput.oncancel = function() {
+      document.body.removeChild(fileInput);
     };
     
     document.body.appendChild(fileInput);

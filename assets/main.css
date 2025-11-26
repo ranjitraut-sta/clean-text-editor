@@ -2,7 +2,6 @@
   box-sizing: border-box;
 }
 
-/* Remove global body styles - only apply to demo page */
 .ranjit-demo-page {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -81,7 +80,9 @@
   background: linear-gradient(45deg, #3498db, #9b59b6);
 }
 
-/* Ranjit Editor Styles */
+/**************************************************************
+************Ranjit Editor Styles***********
+**************************************************************/
 .ranjit-editor-container {
   border: 2px solid #e1e8ed;
   border-radius: 15px;
@@ -348,11 +349,20 @@ body.dark-mode .ranjit-editor-content:focus {
 
 .ranjit-editor-content img {
   max-width: 100%;
+  width: auto;
   height: auto;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   margin: 10px 0;
   transition: all 0.3s ease;
+  object-fit: contain;
+  display: block;
+}
+
+.ranjit-editor-content img[style*="width: 100%"] {
+  width: 100% !important;
+  max-width: 100%;
+  height: auto;
 }
 
 .ranjit-editor-content img:hover {
@@ -1490,7 +1500,6 @@ body.dark-mode .video-examples {
 
 .video-upload-area * {
   cursor: pointer;
-  pointer-events: none;
 }
 
 body.dark-mode .video-upload-area {
@@ -2071,7 +2080,6 @@ body.dark-mode .image-builder-section h4 {
 
 .upload-area * {
   cursor: pointer;
-  pointer-events: none;
 }
 
 body.dark-mode .upload-area {
@@ -2159,6 +2167,8 @@ body.dark-mode .image-preview-section {
   background: #f8f9fa;
   border-radius: 12px;
   border: 2px dashed #e1e8ed;
+  overflow: hidden;
+  position: relative;
 }
 
 body.dark-mode .image-preview-container {
@@ -2171,6 +2181,8 @@ body.dark-mode .image-preview-container {
   max-height: 200px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: block;
+  margin: 0 auto;
 }
 
 .image-controls {
