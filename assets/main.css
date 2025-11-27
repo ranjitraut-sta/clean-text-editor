@@ -2581,23 +2581,23 @@ body.dark-mode .ranjit-editor-content .image-gallery {
   gap: 20px;
 }
 
-.input-group {
+.ranjit-input-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.input-group label {
+.ranjit-input-group label {
   font-weight: 600;
   color: #555;
   font-size: 1rem;
 }
 
-body.dark-mode .input-group label {
+body.dark-mode .ranjit-input-group label {
   color: #e2e8f0;
 }
 
-.input-group input[type="text"] {
+.ranjit-input-group input[type="text"] {
   padding: 12px 15px;
   border: 2px solid #e1e8ed;
   border-radius: 8px;
@@ -2605,13 +2605,13 @@ body.dark-mode .input-group label {
   transition: all 0.3s ease;
 }
 
-body.dark-mode .input-group input[type="text"] {
+body.dark-mode .ranjit-input-group input[type="text"] {
   background: #4a5568;
   border-color: #718096;
   color: #e2e8f0;
 }
 
-.input-group input[type="text"]:focus {
+.ranjit-input-group input[type="text"]:focus {
   outline: none;
   border-color: #667eea;
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -3877,7 +3877,7 @@ body.dark-mode .settings-btn {
   transition: all 0.3s ease;
 }
 
-.ranjit-offcanvas-overlay.show {
+.ranjit-offcanvas-overlay.ranjit-show {
   opacity: 1;
   visibility: visible;
 }
@@ -3900,7 +3900,7 @@ body.dark-mode .ranjit-offcanvas-content {
   background: #2d3748;
 }
 
-.ranjit-offcanvas-overlay.show .ranjit-offcanvas-content {
+.ranjit-offcanvas-overlay.ranjit-show .ranjit-offcanvas-content {
   right: 0;
 }
 
@@ -3938,27 +3938,27 @@ body.dark-mode .tab-btn {
   color: #667eea;
 }
 
-.tab-btn.active {
+.tab-btn.ranjit-active {
   background: white;
   color: #667eea;
   border-bottom-color: #667eea;
 }
 
-body.dark-mode .tab-btn.active {
+body.dark-mode .tab-btn.ranjit-active {
   background: #2d3748;
   color: #3498db;
   border-bottom-color: #3498db;
 }
 
-.tab-content {
+.ranjit-tab-content {
   display: none;
 }
 
-.tab-content.active {
+.ranjit-tab-content.ranjit-active {
   display: block;
 }
 
-.offcanvas-header {
+.ranjit-offcanvas-header {
   padding: 20px 25px;
   border-bottom: 2px solid #e1e8ed;
   background: linear-gradient(135deg, #667eea, #764ba2);
@@ -3968,18 +3968,18 @@ body.dark-mode .tab-btn.active {
   align-items: center;
 }
 
-body.dark-mode .offcanvas-header {
+body.dark-mode .ranjit-offcanvas-header {
   background: linear-gradient(135deg, #3498db, #9b59b6);
   border-bottom-color: #4a5568;
 }
 
-.offcanvas-header h3 {
+.ranjit-offcanvas-header h3 {
   margin: 0;
   font-size: 1.3rem;
   font-weight: 600;
 }
 
-.offcanvas-close {
+.ranjit-offcanvas-close {
   background: transparent;
   border: none;
   color: white;
@@ -3995,51 +3995,51 @@ body.dark-mode .offcanvas-header {
   justify-content: center;
 }
 
-.offcanvas-close:hover {
+.ranjit-offcanvas-close:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: scale(1.1);
 }
 
-.offcanvas-body {
+.ranjit-offcanvas-body {
   flex: 1;
   padding: 25px;
   overflow-y: auto;
   max-height: calc(100vh - 200px);
 }
 
-.tab-content {
+.ranjit-tab-content {
   max-height: calc(100vh - 300px);
   overflow-y: auto;
   padding-right: 5px;
 }
 
-.tab-content::-webkit-scrollbar {
+.ranjit-tab-content::-webkit-scrollbar {
   width: 6px;
 }
 
-.tab-content::-webkit-scrollbar-track {
+.ranjit-tab-content::-webkit-scrollbar-track {
   background: #f1f1f1;
   border-radius: 3px;
 }
 
-.tab-content::-webkit-scrollbar-thumb {
+.ranjit-tab-content::-webkit-scrollbar-thumb {
   background: linear-gradient(45deg, #667eea, #764ba2);
   border-radius: 3px;
 }
 
-.tab-content::-webkit-scrollbar-thumb:hover {
+.ranjit-tab-content::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(45deg, #5a67d8, #6b46c1);
 }
 
-body.dark-mode .tab-content::-webkit-scrollbar-track {
+body.dark-mode .ranjit-tab-content::-webkit-scrollbar-track {
   background: #4a5568;
 }
 
-body.dark-mode .tab-content::-webkit-scrollbar-thumb {
+body.dark-mode .ranjit-tab-content::-webkit-scrollbar-thumb {
   background: linear-gradient(45deg, #3498db, #9b59b6);
 }
 
-.offcanvas-footer {
+.ranjit-offcanvas-footer {
   padding: 20px 25px;
   border-top: 1px solid #e1e8ed;
   background: #f8f9fa;
@@ -4047,7 +4047,7 @@ body.dark-mode .tab-content::-webkit-scrollbar-thumb {
   gap: 10px;
 }
 
-body.dark-mode .offcanvas-footer {
+body.dark-mode .ranjit-offcanvas-footer {
   background: #4a5568;
   border-top-color: #718096;
 }
@@ -4147,15 +4147,15 @@ body.dark-mode .toggle-info small {
     right: -100%;
   }
   
-  .offcanvas-header {
+  .ranjit-offcanvas-header {
     padding: 15px 20px;
   }
   
-  .offcanvas-body {
+  .ranjit-offcanvas-body {
     padding: 20px;
   }
   
-  .offcanvas-footer {
+  .ranjit-offcanvas-footer {
     padding: 15px 20px;
     flex-direction: column;
   }

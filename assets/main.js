@@ -875,19 +875,19 @@
     const offCanvasHtml = `
       <div class="ranjit-offcanvas-overlay" id="settingsOffCanvas">
         <div class="ranjit-offcanvas-content">
-          <div class="offcanvas-header">
+          <div class="ranjit-offcanvas-header">
             <h3>⚙️ Editor Settings</h3>
-            <button class="offcanvas-close" id="closeSettings">&times;</button>
+            <button class="ranjit-offcanvas-close" id="closeSettings">&times;</button>
           </div>
           
           <div class="settings-tabs">
-            <button class="tab-btn active" data-tab="toolbar">🛠️ Toolbar Features</button>
+            <button class="tab-btn ranjit-active" data-tab="toolbar">🛠️ Toolbar Features</button>
             <button class="tab-btn" data-tab="preferences">🎨 Editor Preferences</button>
             <button class="tab-btn" data-tab="notifications">🔔 Notifications</button>
           </div>
           
-          <div class="offcanvas-body">
-            <div class="tab-content active" id="toolbar-tab">
+          <div class="ranjit-offcanvas-body">
+            <div class="ranjit-tab-content ranjit-active" id="toolbar-tab">
               <div class="settings-list">
                 <label class="setting-toggle">
                   <input type="checkbox" id="enableTextEffects" ${savedSettings.textEffects ? 'checked' : ''}>
@@ -980,7 +980,7 @@
               </div>
             </div>
             
-            <div class="tab-content" id="preferences-tab">
+            <div class="ranjit-tab-content" id="preferences-tab">
               <div class="settings-list">
                 <label class="setting-toggle">
                   <input type="checkbox" id="enableAutosave" ${savedSettings.autosave ? 'checked' : ''}>
@@ -1009,7 +1009,7 @@
               </div>
             </div>
             
-            <div class="tab-content" id="notifications-tab">
+            <div class="ranjit-tab-content" id="notifications-tab">
               <div class="settings-list">
                 <label class="setting-toggle">
                   <input type="checkbox" id="enableImageSuccess" ${savedSettings.showImageSuccess ? 'checked' : ''}>
@@ -1023,7 +1023,7 @@
             </div>
           </div>
           
-          <div class="offcanvas-footer">
+          <div class="ranjit-offcanvas-footer">
             <button class="settings-btn ranjit-primary" id="applySettings">✓ Apply Settings</button>
             <button class="settings-btn" id="resetSettings">🔄 Reset Default</button>
           </div>
@@ -1035,29 +1035,29 @@
     
     // Show with animation
     setTimeout(() => {
-      $('#settingsOffCanvas').addClass('show');
+      $('#settingsOffCanvas').addClass('ranjit-show');
     }, 10);
     
     // Tab switching
     $('.tab-btn').on('click', function() {
       const tabId = $(this).data('tab');
-      $('.tab-btn').removeClass('active');
-      $('.tab-content').removeClass('active');
-      $(this).addClass('active');
-      $(`#${tabId}-tab`).addClass('active');
+      $('.tab-btn').removeClass('ranjit-active');
+      $('.ranjit-tab-content').removeClass('ranjit-active');
+      $(this).addClass('ranjit-active');
+      $(`#${tabId}-tab`).addClass('ranjit-active');
     });
     
     // Event handlers
     $('#closeSettings, .ranjit-offcanvas-overlay').on('click', function(e) {
       if (e.target === this) {
-        $('#settingsOffCanvas').removeClass('show');
+        $('#settingsOffCanvas').removeClass('ranjit-show');
         setTimeout(() => $('#settingsOffCanvas').remove(), 300);
       }
     });
     
     $('#applySettings').on('click', function() {
       applyEditorSettings();
-      $('#settingsOffCanvas').removeClass('show');
+      $('#settingsOffCanvas').removeClass('ranjit-show');
       setTimeout(() => $('#settingsOffCanvas').remove(), 300);
     });
     
@@ -1201,19 +1201,22 @@
     
     let currentVideoData = null;
     
-    // Video upload area click
-    $(document).on('click', '#videoUploadArea', function(e) {
+    // Video upload area click - direct binding
+    $('#videoUploadArea').on('click', function(e) {
       e.preventDefault();
       e.stopPropagation();
       console.log('Video upload area clicked'); // Debug log
       const fileInput = document.getElementById('videoFileInput');
       if (fileInput) {
+        console.log('Triggering video file input click');
         fileInput.click();
+      } else {
+        console.log('Video file input not found');
       }
     });
     
-    // File input change
-    $(document).on('change', '#videoFileInput', function(e) {
+    // File input change - direct binding
+    $('#videoFileInput').on('change', function(e) {
       console.log('Video file input changed'); // Debug log
       const file = e.target.files[0];
       if (file) {
@@ -3581,25 +3584,25 @@
         <style>
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
+            line-height: 1.8;
             max-width: 800px;
             margin: 0 auto;
             padding: 40px 20px;
-            color: #333;
+            color: #2d3748;
+            font-size: 16px;
           }
           h1, h2, h3, h4, h5, h6 {
-            color: #667eea;
-            margin-top: 30px;
-            margin-bottom: 15px;
+            margin: 25px 0 15px 0;
             font-weight: 700;
+            line-height: 1.3;
           }
-          h1 { font-size: 2.5em; }
-          h2 { font-size: 2em; }
-          h3 { font-size: 1.5em; }
-          h4 { font-size: 1.25em; }
-          h5 { font-size: 1.1em; }
-          h6 { font-size: 1em; }
-          p { margin-bottom: 15px; }
+          h1 { font-size: 2.5em; color: #667eea; }
+          h2 { font-size: 2em; color: #667eea; }
+          h3 { font-size: 1.5em; color: #764ba2; }
+          h4 { font-size: 1.25em; color: #764ba2; }
+          h5 { font-size: 1.1em; color: #764ba2; }
+          h6 { font-size: 1em; color: #764ba2; }
+          p { margin: 15px 0; line-height: 1.8; }
           table {
             border-collapse: collapse;
             width: 100%;
@@ -3612,6 +3615,7 @@
             border: 1px solid #e1e8ed;
             padding: 12px 15px;
             text-align: left;
+            transition: all 0.2s ease;
           }
           th {
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -3621,11 +3625,27 @@
           tr:nth-child(even) {
             background: #f8f9fa;
           }
+          tr:hover {
+            background: rgba(102, 126, 234, 0.1);
+          }
           img {
             max-width: 100%;
             height: auto;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin: 10px 0;
+            transition: all 0.3s ease;
+          }
+          img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+          }
+          iframe {
+            max-width: 100%;
+            width: 100%;
+            height: 315px;
+            border: none;
+            border-radius: 8px;
             margin: 10px 0;
           }
           blockquote {
@@ -3643,13 +3663,24 @@
             border-radius: 8px;
             overflow-x: auto;
             font-family: 'Courier New', monospace;
+            margin: 20px 0;
+          }
+          ul, ol {
+            padding-left: 30px;
+            margin: 15px 0;
+          }
+          li {
+            margin: 8px 0;
+            line-height: 1.6;
           }
           a {
             color: #667eea;
             text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: all 0.2s ease;
           }
           a:hover {
-            text-decoration: underline;
+            border-bottom-color: #667eea;
           }
           .export-info {
             text-align: center;
@@ -3728,7 +3759,7 @@
         <h3>🔗 Insert Link</h3>
         
         <div class="link-builder-section">
-          <div class="input-group">
+          <div class="ranjit-input-group">
             <label>🔗 Website URL:</label>
             <div class="url-input-wrapper">
               <span class="url-prefix">https://</span>
@@ -3740,13 +3771,13 @@
             <small class="input-hint">🌐 Enter website address (without https://)</small>
           </div>
           
-          <div class="input-group">
+          <div class="ranjit-input-group">
             <label>📝 Link Text:</label>
             <input type="text" id="linkText" placeholder="Link text" value="${selectedText}">
             <small class="input-hint">Text that will be displayed as the link</small>
           </div>
           
-          <div class="input-group">
+          <div class="ranjit-input-group">
             <label>🎯 Open Link:</label>
             <div class="radio-group">
               <label class="radio-option">
@@ -3762,7 +3793,7 @@
             </div>
           </div>
           
-          <div class="input-group">
+          <div class="ranjit-input-group">
             <label>📋 Title (Optional):</label>
             <input type="text" id="linkTitle" placeholder="Link description">
             <small class="input-hint">Tooltip text when hovering over the link</small>
@@ -3903,7 +3934,7 @@
         <h3>🔍 Find & Replace</h3>
         
         <div class="find-replace-section">
-          <div class="input-group">
+          <div class="ranjit-input-group">
             <label>🔍 Find:</label>
             <input type="text" id="findText" placeholder="Enter text to find..." autofocus>
             <div class="find-options">
@@ -3913,7 +3944,7 @@
             </div>
           </div>
           
-          <div class="input-group">
+          <div class="ranjit-input-group">
             <label>🔄 Replace with:</label>
             <input type="text" id="replaceText" placeholder="Enter replacement text...">
           </div>
